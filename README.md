@@ -1,4 +1,8 @@
-### Spin Wheel Tool for Laravel Nova
+Here is the cleaned-up **README.md** without unnecessary local path references:
+
+---
+
+# **Spin Wheel Tool for Laravel Nova**
 
 **Spin Wheel Tool** is a Laravel Nova package that allows you to configure a spinning wheel with a flexible frontend interface. The package supports setting prize probabilities from the backend and ensures security by handling the spinning logic on the server. It integrates seamlessly with Laravel Nova, providing an intuitive interface for administrators to manage prizes and configurations.
 
@@ -25,8 +29,6 @@
 
 ## **Installation**
 
-Follow these steps to install and set up the Spin Wheel Tool package in your Laravel Nova project.
-
 ### **1. Install the Package via Composer**
 
 Run the following command to install the package:
@@ -43,7 +45,7 @@ Publish the package's configuration file, migrations, and frontend assets using 
 php artisan spinwheeltool:publish
 ```
 
-*Alternatively, you can publish each asset type individually:*
+Alternatively, publish individual asset types:
 
 ```bash
 php artisan vendor:publish --provider="Dbiz\SpinWheelTool\ToolServiceProvider" --tag=config
@@ -97,15 +99,42 @@ or
 yarn build
 ```
 
-### **5. Publish Assets (Optional)**
+---
 
-If you need to customize the frontend interface or logic, publish the assets:
+## **Integration**
 
-```bash
-php artisan vendor:publish --tag=spin-wheel-tool-assets
+### **1. Register the Tool in NovaServiceProvider**
+
+To register the tool in Laravel Nova, open your `NovaServiceProvider` file and add the `SpinWheelTool` to the `tools()` method:
+
+```php
+public function tools()
+{
+    return [
+        new \Dbiz\SpinWheelTool\SpinWheelTool(),
+    ];
+}
 ```
 
-This will copy the frontend assets to the `public/spin-wheel-tool` directory, allowing you to modify them as needed.
+### **2. Add Menu Section for Backend Navigation**
+
+Add a menu section for the Spin Wheel Tool in your Nova menu configuration:
+
+```php
+use Laravel\Nova\Menu\MenuSection;
+use Laravel\Nova\Menu\MenuItem;
+
+public function menu()
+{
+    return [
+        MenuSection::make('Quay thưởng', [
+            MenuItem::make('Cấu hình', '/nova-vendor/spin-wheel-tool/setting'),
+        ])->icon('refresh')->collapsable(),
+    ];
+}
+```
+
+This will add a collapsible "Quay thưởng" section in the Nova backend, allowing administrators to access the Spin Wheel Tool's configuration page.
 
 ---
 
@@ -196,147 +225,6 @@ Alternatively, access the spinning interface directly via the provided route:
 /nova-vendor/spin-wheel-tool/frontend
 ```
 
-When the user clicks spin, the system will call the `/nova-vendor/spin-wheel-tool/spin` API to process the spinning logic on the server and return the result.
-
----
-
-## **Customization**
-
-### **Overriding Controller Methods**
-
-The package allows you to override specific controller methods (`checkSpin` and `submitCustomerInfo`) to implement custom spin logic or integrate with existing models.
-
-#### **1. Create a Custom Controller**
-
-Create a new controller in your application that extends the package's `SpinWheelController`:
-
-```bash
-php artisan make:controller CustomSpinWheelController
-```
-
-#### **2. Implement the Custom Controller**
-
-Implement the custom controller by extending `SpinWheelController` and overriding the desired methods:
-
-```php
-<?php
-
-namespace App\Http\Controllers;
-
-use Dbiz\SpinWheelTool\Http\Controllers\SpinWheelController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
-
-class CustomSpinWheelController extends SpinWheelController
-{
-    /**
-     * Override the checkSpin method with custom logic.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function checkSpin(Request $request)
-    {
-        $spinLimit = Config::get('spinwheeltool.spin_limit', 3);
-        $today = now()->startOfDay();
-
-        // Implement custom spin limit logic here
-        // Example: Check against a custom spin count mechanism
-
-        // Example: Always allow spin and log
-        Log::info('Custom checkSpin called.', [
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->header('User-Agent'),
-            'spin_limit' => $spinLimit,
-        ]);
-
-        // Implement actual spin limit logic as needed
-        // Return appropriate response
-        return response()->json([
-            'can_spin' => true, // Change based on your logic
-        ]);
-    }
-
-    /**
-     * Override the submitCustomerInfo method with custom logic.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function submitCustomerInfo(Request $request)
-    {
-        $validated = $request->validate([
-            'name'       => 'required|string|max:255',
-            'phone'      => 'required|string|regex:/^\d{10,15}$/',
-            'email'      => 'required|email|max:255',
-            'spin_token' => 'required|uuid',
-        ]);
-
-        // Implement custom logic here
-        // Example: Save customer info to a custom model or perform additional actions
-
-        Log::info('Custom submitCustomerInfo called.', [
-            'name'       => $validated['name'],
-            'phone'      => $validated['phone'],
-            'email'      => $validated['email'],
-            'spin_token' => $validated['spin_token'],
-        ]);
-
-        // Implement actual logic as needed
-
-        // Return custom response
-        return response()->json([
-            'message' => 'Customer information received and processed.',
-        ]);
-    }
-
-    /**
-     * Optionally, override other methods if needed.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function spin(Request $request)
-    {
-        // You can override the spin method as well if needed
-        return parent::spin($request);
-    }
-
-    // Add more overridden methods as needed
-}
-```
-
-#### **3. Update Configuration to Use the Custom Controller**
-
-Edit the `config/spinwheeltool.php` file to specify your custom controller:
-
-```php
-<?php
-
-return [
-
-    // ... existing configuration ...
-
-    /*
-    |--------------------------------------------------------------------------
-    | Custom Spin Wheel Controller
-    |--------------------------------------------------------------------------
-    |
-    | Specify a custom controller to override the default SpinWheelController.
-    | If not set, the package's default controller will be used.
-    |
-    | Example:
-    | 'controller' => App\Http\Controllers\CustomSpinWheelController::class,
-    |
-    */
-    'controller' => App\Http\Controllers\CustomSpinWheelController::class,
-
-];
-```
-
-With this configuration, the package will use your custom controller instead of the default one, allowing you to implement tailored spin logic or integrate with your application's models.
-
 ---
 
 ## **Development**
@@ -347,120 +235,8 @@ With this configuration, the package will use your custom controller instead of 
 
 - **CSS**: Modify styles in `nova-components/SpinWheelTool/resources/css/tool.css` to adjust the spinning wheel's design.
 
-#### **Recompiling Assets**
-
-After making changes to frontend assets, recompile them:
-
-```bash
-yarn frontend:watch
-```
-
-or for production:
-
-```bash
-yarn frontend:build
-```
-
-### **2. Backend Development**
-
-If you need to adjust backend logic or extend functionalities:
-
-- **Controllers**: Override controller methods as described in the [Customization](#customization) section.
-
-- **Services**: Modify or extend services like `PrizeService` located in `nova-components/SpinWheelTool/src/Services`.
-
-#### **Recompiling Backend Assets**
-
-After making changes to backend code, ensure that your application recognizes the updates. If necessary, clear caches:
-
-```bash
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-```
-
----
-
-## **Feedback and Issues**
-
-If you encounter any issues or have suggestions, please create an issue at the [GitHub repository](https://github.com/yourusername/spin-wheel-tool).
-
-Feel free to submit pull requests for improvements or new features!
-
----
-
-## **License**
-
-Spin Wheel Tool is released under the [MIT License](https://opensource.org/licenses/MIT).
-
----
-
-## **README.md Overview**
-
-- **Features**: Highlights the key functionalities of the Spin Wheel Tool.
-- **Requirements**: Lists the necessary software and versions.
-- **Installation**: Step-by-step guide to install and set up the package.
-- **Usage**: Instructions on configuring prizes and integrating the spinning wheel into the frontend.
-- **Customization**: Guides on overriding controller methods for custom logic.
-- **Development**: Information on modifying frontend and backend components.
-- **Feedback and Issues**: Directs users to the GitHub repository for support and contributions.
-- **License**: States the licensing terms.
-
-*Replace `yourusername/spin-wheel-tool` with the actual URL to your GitHub repository.*
-
----
-
-### **Additional Development Commands**
-
-#### **Frontend Development**
-
-- **Watch for Changes**
-
-  ```bash
-  yarn frontend:watch
-  ```
-
-- **Build for Production**
-
-  ```bash
-  yarn frontend:build
-  ```
-
-#### **Publishing Assets**
-
-```bash
-php artisan vendor:publish --tag=spin-wheel-tool-assets
-```
-
----
-
-### **Backend Development**
-
-- **Watch Backend Assets**
-
-  ```bash
-  yarn watch
-  ```
-
-- **Development Build**
-
-  ```bash
-  yarn dev
-  ```
-
-- **Accessing Spin Wheel Settings**
-
-  Navigate to the following route in your application:
-
-  ```
-  /nova-vendor/spin-wheel-tool/setting
-  ```
-
 ---
 
 ## **Final Notes**
 
-By following this comprehensive guide, you can effectively install, configure, and customize the Spin Wheel Tool package within your Laravel Nova project. The package is designed to be flexible and user-friendly, allowing for extensive customization to fit your application's unique requirements.
-
-For any further assistance or inquiries, please refer to the [GitHub repository](https://github.com/yourusername/spin-wheel-tool) or contact the maintainer directly.
+By following this comprehensive guide, you can effectively install, configure, and customize the Spin Wheel Tool package within your Laravel Nova project. For any further assistance or inquiries, please refer to the [GitHub repository](https://github.com/yourusername/spin-wheel-tool) or contact the maintainer directly.
