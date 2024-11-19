@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "npm run development",
+    "development": "mix",
+    "watch": "mix watch",
+    "watch-poll": "mix watch -- --watch-options-poll=1000",
+    "hot": "mix watch --hot",
+    "prod": "npm run production",
+    "production": "mix --production",
+    "nova:install": "npm --prefix='../../vendor/laravel/nova' ci",
+    "frontend:build": "npx mix --mix-config=webpack.mix.frontend.js --production",
+    "frontend:watch": "npx mix watch --mix-config=webpack.mix.frontend.js"
+  },
+  "devDependencies": {
+    "laravel-mix": "^6.0.41",
+    "postcss": "^8.3.11",
+    "spin-wheel": "^5.0.2",
+    "vue": "3",
+    "vue-loader": "^16.8.3",
+    "webpack-cli": "^5.1.4",
+    "webpack-manifest-plugin": "^5.0.0"
+  },
+  "dependencies": {
+    "@sweetalert2/theme-dark": "^5.0.18",
+    "sweetalert2": "^11.14.5"
+  }
+}
